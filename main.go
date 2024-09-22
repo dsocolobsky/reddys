@@ -6,12 +6,24 @@ import (
 	"strings"
 )
 
+func simpleString(message string) string {
+	return fmt.Sprintf("+%s\r\n", message)
+}
+
+func simpleError(message string) string {
+	return fmt.Sprintf("-%s\r\n", message)
+}
+
+func bulkString(message string) string {
+	return fmt.Sprintf("$%d\r\n%s\r\n", len(message), message)
+}
+
 func handleMessage(conn net.Conn, message string) {
 	if message == "" {
 		return
 	}
 
-	words := strings.Split(message, " ")
+	words := strings.SplitN(message, " ", 2)
 	if len(words) == 0 {
 		return
 	}
@@ -19,9 +31,13 @@ func handleMessage(conn net.Conn, message string) {
 	fmt.Println("Command: ", command)
 	switch command {
 	case "PING":
-		message = "+PONG\r\n"
+		if len(words) > 1 {
+			message = bulkString(words[1])
+		} else {
+			message = simpleString("PONG")
+		}
 	default:
-		message = "-ERR unknown command\r\n"
+		message = simpleError("ERR unknown command")
 	}
 
 	_, err := conn.Write([]byte(message))
