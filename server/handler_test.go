@@ -72,3 +72,23 @@ func TestIncrAndDecr(t *testing.T) {
 		t.Errorf("Expected ':-2\\r\\n', got '%s'", resp)
 	}
 }
+
+func TestIncrByAndDecrBy(t *testing.T) {
+	handler := NewHandler(internal.NewMapDatabase())
+	resp := handler.HandleCommand([]string{"incrby", "key", "5"})
+	if resp != ":5\r\n" {
+		t.Errorf("Expected ':5\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"incrby", "key", "5"})
+	if resp != ":10\r\n" {
+		t.Errorf("Expected ':10\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"decrby", "key", "3"})
+	if resp != ":7\r\n" {
+		t.Errorf("Expected ':7\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"decrby", "key", "3"})
+	if resp != ":4\r\n" {
+		t.Errorf("Expected ':4\\r\\n', got '%s'", resp)
+	}
+}

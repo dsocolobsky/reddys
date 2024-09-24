@@ -101,6 +101,28 @@ func (h *Handler) decr(commands []string) string {
 	return h._intModifyBy(commands[1], -1)
 }
 
+func (h *Handler) incrBy(commands []string) string {
+	if len(commands) != 3 {
+		return internal.CraftSimpleError("wrong number of arguments for 'incrby' command")
+	}
+	amount, err := strconv.Atoi(commands[2])
+	if err != nil {
+		return internal.CraftSimpleError("value is not an integer or out of range")
+	}
+	return h._intModifyBy(commands[1], amount)
+}
+
+func (h *Handler) decrBy(commands []string) string {
+	if len(commands) != 3 {
+		return internal.CraftSimpleError("wrong number of arguments for 'decrby' command")
+	}
+	amount, err := strconv.Atoi(commands[2])
+	if err != nil {
+		return internal.CraftSimpleError("value is not an integer or out of range")
+	}
+	return h._intModifyBy(commands[1], -amount)
+}
+
 func (h *Handler) _intModifyBy(key string, amount int) string {
 	var intVal int
 	h.database.Lock()
@@ -139,6 +161,10 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.incr(commands)
 	case "DECR":
 		return h.decr(commands)
+	case "INCRBY":
+		return h.incrBy(commands)
+	case "DECRBY":
+		return h.decrBy(commands)
 	}
 	return internal.CraftSimpleError("ERR unknown command")
 }
