@@ -21,6 +21,10 @@ func CraftBulkString(message string) string {
 	return "$" + length + "\r\n" + message + "\r\n"
 }
 
+func CraftNullString() string {
+	return "_\r\n"
+}
+
 // CraftBoolean crafts a RESP boolean of the type "#t\r\n" or "#f\r\n"
 func CraftBoolean(val bool) string {
 	if val {
