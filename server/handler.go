@@ -30,7 +30,9 @@ func (h *Handler) get(commands []string) string {
 		return internal.CraftSimpleError("wrong number of arguments for 'get' command")
 	}
 	key := commands[1]
+	h.database.Lock()
 	value := h.database.Get(key)
+	h.database.Unlock()
 	if value == "" {
 		return internal.CraftNullString()
 	} else {
@@ -44,7 +46,9 @@ func (h *Handler) set(commands []string) string {
 	}
 	key := commands[1]
 	value := commands[2]
+	h.database.Lock()
 	h.database.Set(key, value)
+	h.database.Unlock()
 	return internal.CraftSimpleString("OK")
 }
 
@@ -53,6 +57,8 @@ func (h *Handler) mget(commands []string) string {
 		return internal.CraftSimpleError("wrong number of arguments for 'mget' command")
 	}
 	var values []string
+	h.database.Lock()
+	defer h.database.Unlock()
 	for i := 1; i < len(commands); i++ {
 		key := commands[i]
 		value := h.database.Get(key)
@@ -71,6 +77,8 @@ func (h *Handler) mset(commands []string) string {
 	if len(commands) < 3 || len(commands)%2 != 1 {
 		return internal.CraftSimpleError("wrong number of arguments for 'mset' command")
 	}
+	h.database.Lock()
+	defer h.database.Unlock()
 	for i := 1; i < len(commands); i += 2 {
 		key := commands[i]
 		value := commands[i+1]
@@ -95,6 +103,8 @@ func (h *Handler) decr(commands []string) string {
 
 func (h *Handler) _intModifyBy(key string, amount int) string {
 	var intVal int
+	h.database.Lock()
+	defer h.database.Unlock()
 	value := h.database.Get(key)
 	if value == "" {
 		intVal = 0
