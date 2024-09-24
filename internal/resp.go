@@ -21,6 +21,13 @@ func CraftBulkString(message string) string {
 	return "$" + length + "\r\n" + message + "\r\n"
 }
 
+func CraftBoolean(val bool) string {
+	if val {
+		return "#t\r\n"
+	}
+	return "#f\r\n"
+}
+
 // ReadBulkString reads a RESP bulk string of the type "$length\r\nmessage\r\n" into a string "message"
 func ReadBulkString(message string) (string, int) {
 	if message[0] != '$' {
@@ -88,8 +95,22 @@ func readSimple(message string, ch string) (string, int) {
 	return splitted[0], len(splitted[0]) + 3 // Add 3 to account for the + and \r\n
 }
 
+func ReadBoolean(message string) (string, int) {
+	// TODO We should return a boolean here, but for now let's do string.
+	fmt.Println("Boolean: ", message)
+	if len(message) < 4 || message[0] != '#' {
+		panic("Invalid boolean")
+	}
+	val := message[1]
+	if val == 't' {
+		return "true", 4
+	} else if val == 'f' {
+		return "false", 4
+	}
+	panic("Invalid boolean, no t/f")
+}
+
 func ReadRESP(message string) (string, int) {
-	message = strings.TrimSpace(message)
 	switch message[0] {
 	case '+':
 		return ReadSimpleString(message)
@@ -97,6 +118,8 @@ func ReadRESP(message string) (string, int) {
 		return ReadSimpleError(message)
 	case '$':
 		return ReadBulkString(message)
+	case '#':
+		return ReadBoolean(message)
 	case '*':
 		// Not yet implemented
 		//return ReadArray(message)
