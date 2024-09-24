@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/dsocolobsky/reddys/internal"
+	"strconv"
 	"strings"
 )
 
@@ -78,6 +79,38 @@ func (h *Handler) mset(commands []string) string {
 	return internal.CraftSimpleString("OK")
 }
 
+func (h *Handler) incr(commands []string) string {
+	if len(commands) != 2 {
+		return internal.CraftSimpleError("wrong number of arguments for 'incr' command")
+	}
+	return h._intModifyBy(commands[1], 1)
+}
+
+func (h *Handler) decr(commands []string) string {
+	if len(commands) != 2 {
+		return internal.CraftSimpleError("wrong number of arguments for 'decr' command")
+	}
+	return h._intModifyBy(commands[1], -1)
+}
+
+func (h *Handler) _intModifyBy(key string, amount int) string {
+	var intVal int
+	value := h.database.Get(key)
+	if value == "" {
+		intVal = 0
+		h.database.Set(key, strconv.Itoa(intVal))
+	} else {
+		var err error
+		intVal, err = strconv.Atoi(value)
+		if err != nil {
+			return internal.CraftSimpleError("value is not an integer or out of range")
+		}
+	}
+	intVal += amount
+	h.database.Set(key, strconv.Itoa(intVal))
+	return internal.CraftInteger(intVal)
+}
+
 func (h *Handler) HandleCommand(commands []string) string {
 	command := strings.ToUpper(strings.TrimSpace(commands[0]))
 
@@ -92,6 +125,10 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.mget(commands)
 	case "MSET":
 		return h.mset(commands)
+	case "INCR":
+		return h.incr(commands)
+	case "DECR":
+		return h.decr(commands)
 	}
 	return internal.CraftSimpleError("ERR unknown command")
 }

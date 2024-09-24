@@ -48,3 +48,27 @@ func TestMgetAndMSet(t *testing.T) {
 		t.Errorf("Expected '*3\\r\\n$4\\r\\nval1\\r\\n$4\\r\\nval2\\r\\n_\\r\\n', got '%s'", resp)
 	}
 }
+
+func TestIncrAndDecr(t *testing.T) {
+	handler := NewHandler(internal.NewMapDatabase())
+	resp := handler.HandleCommand([]string{"incr", "key"})
+	if resp != ":1\r\n" {
+		t.Errorf("Expected ':1\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"incr", "key"})
+	if resp != ":2\r\n" {
+		t.Errorf("Expected ':2\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"decr", "key"})
+	if resp != ":1\r\n" {
+		t.Errorf("Expected ':1\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"decr", "otherkey"})
+	if resp != ":-1\r\n" {
+		t.Errorf("Expected ':-1\\r\\n', got '%s'", resp)
+	}
+	resp = handler.HandleCommand([]string{"decr", "otherkey"})
+	if resp != ":-2\r\n" {
+		t.Errorf("Expected ':-2\\r\\n', got '%s'", resp)
+	}
+}
