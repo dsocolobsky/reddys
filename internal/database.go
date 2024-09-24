@@ -1,19 +1,24 @@
 package internal
 
-type Database struct {
+type Database interface {
+	Get(key string) string
+	Set(key, value string)
+}
+
+type MapDatabase struct {
 	data map[string]string
 }
 
-func NewDatabase() *Database {
-	return &Database{
+func NewMapDatabase() *MapDatabase {
+	return &MapDatabase{
 		data: make(map[string]string),
 	}
 }
 
-func (db *Database) Get(key string) string {
+func (db *MapDatabase) Get(key string) string {
 	return db.data[key]
 }
 
-func (db *Database) Set(key, value string) {
+func (db *MapDatabase) Set(key, value string) {
 	db.data[key] = value
 }
