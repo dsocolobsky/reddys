@@ -21,11 +21,17 @@ func CraftBulkString(message string) string {
 	return "$" + length + "\r\n" + message + "\r\n"
 }
 
+// CraftBoolean crafts a RESP boolean of the type "#t\r\n" or "#f\r\n"
 func CraftBoolean(val bool) string {
 	if val {
 		return "#t\r\n"
 	}
 	return "#f\r\n"
+}
+
+// CraftInteger crafts a RESP integer of the type ":(+|-)?val\r\n"
+func CraftInteger(val int) string {
+	return fmt.Sprintf(":%d\r\n", val)
 }
 
 // ReadBulkString reads a RESP bulk string of the type "$length\r\nmessage\r\n" into a string "message"
@@ -110,6 +116,28 @@ func ReadBoolean(message string) (string, int) {
 	panic("Invalid boolean, no t/f")
 }
 
+func ReadInteger(message string) (string, int) {
+	// TODO we should return integer here instead of string
+	if message[0] != ':' {
+		panic("Invalid integer")
+	}
+	message = message[1:]
+	var sign byte
+	// Handle optional sign
+	if message[0] == '-' || message[0] == '+' {
+		sign = message[0]
+		message = message[1:]
+	}
+	splitted := strings.SplitN(message, "\r\n", 2)
+	intStr := splitted[0]
+	if sign == '-' {
+		return "-" + intStr, len(intStr) + 4 // Add 2 for the \r\n and 2 for the : and -
+	} else if sign == '+' {
+		return intStr, len(intStr) + 4 // Add 2 for the \r\n and 2 for the : and +
+	}
+	return intStr, len(intStr) + 3 // Add 2 for the \r\n and 1 for the :
+}
+
 func ReadRESP(message string) (string, int) {
 	switch message[0] {
 	case '+':
@@ -120,6 +148,8 @@ func ReadRESP(message string) (string, int) {
 		return ReadBulkString(message)
 	case '#':
 		return ReadBoolean(message)
+	case ':':
+		return ReadInteger(message)
 	case '*':
 		// Not yet implemented
 		//return ReadArray(message)

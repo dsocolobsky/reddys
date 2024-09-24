@@ -53,6 +53,14 @@ func TestCraftBulkStringNull(t *testing.T) {
 	}
 }
 
+func TestCraftInteger(t *testing.T) {
+	expected := ":-123\r\n"
+	actual := CraftInteger(-123)
+	if expected != actual {
+		t.Errorf("Expected %s but got %s", expected, actual)
+	}
+}
+
 func TestReadBulkString(t *testing.T) {
 	expected := "message"
 	raw := "$7\r\nmessage\r\n"
@@ -113,6 +121,18 @@ func TestReadBoolean(t *testing.T) {
 	}
 }
 
+func TestReadInteger(t *testing.T) {
+	expected := "123"
+	raw := ":123\r\n"
+	actual, read := ReadInteger(raw)
+	if expected != actual {
+		t.Errorf("Expected %s but got %s", expected, actual)
+	}
+	if read != len(raw) {
+		t.Errorf("Expected to read %d but got %d", len(raw), read)
+	}
+}
+
 func TestReadArrayOfSimpleStrings(t *testing.T) {
 	expected := []string{"one", "two", "three"}
 	actual := ReadArray("*3\r\n+one\r\n+two\r\n+three\r\n")
@@ -140,6 +160,16 @@ func TestReadArrayOfBulkStrings(t *testing.T) {
 func TestReadArrayOfBooleans(t *testing.T) {
 	expected := []string{"true", "false", "true"}
 	actual := ReadArray("*3\r\n#t\r\n#f\r\n#t\r\n")
+	for i, v := range expected {
+		if v != actual[i] {
+			t.Errorf("Expected %s but got %s", v, actual[i])
+		}
+	}
+}
+
+func TestReadArrayOfIntegers(t *testing.T) {
+	expected := []string{"10", "-9", "7"}
+	actual := ReadArray("*3\r\n:10\r\n:-9\r\n:+7\r\n")
 	for i, v := range expected {
 		if v != actual[i] {
 			t.Errorf("Expected %s but got %s", v, actual[i])
