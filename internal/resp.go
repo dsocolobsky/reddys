@@ -34,6 +34,11 @@ func CraftInteger(val int) string {
 	return fmt.Sprintf(":%d\r\n", val)
 }
 
+func CraftArray(array []string) string {
+	nElems := len(array)
+	return "*" + fmt.Sprintf("%d\r\n", nElems) + strings.Join(array, "")
+}
+
 // ReadBulkString reads a RESP bulk string of the type "$length\r\nmessage\r\n" into a string "message"
 func ReadBulkString(message string) (string, int) {
 	if message[0] != '$' {
