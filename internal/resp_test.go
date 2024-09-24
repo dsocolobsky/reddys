@@ -1,6 +1,8 @@
-package main
+package internal
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestCraftSimpleString(t *testing.T) {
 	expected := "+message\r\n"

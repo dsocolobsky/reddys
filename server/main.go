@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/dsocolobsky/reddys/internal"
 	"net"
 	"strings"
 )
@@ -20,12 +21,12 @@ func handleMessage(conn net.Conn, message string) {
 	switch command {
 	case "PING":
 		if len(words) > 1 {
-			message = CraftBulkString(words[1])
+			message = internal.CraftBulkString(words[1])
 		} else {
-			message = CraftSimpleString("PONG")
+			message = internal.CraftSimpleString("PONG")
 		}
 	default:
-		message = CraftSimpleError("ERR unknown command")
+		message = internal.CraftSimpleError("ERR unknown command")
 	}
 
 	_, err := conn.Write([]byte(message))
