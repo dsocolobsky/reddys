@@ -1,12 +1,12 @@
-package main
+package server
 
 import (
-	"github.com/dsocolobsky/reddys/internal"
+	"github.com/dsocolobsky/reddys/pkg/database"
 	"testing"
 )
 
 func TestPing(t *testing.T) {
-	handler := NewHandler(internal.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase())
 	resp := handler.HandleCommand([]string{"ping"})
 	if resp != "+PONG\r\n" {
 		t.Errorf("Expected '+PONG\\r\\n', got '%s'", resp)
@@ -14,7 +14,7 @@ func TestPing(t *testing.T) {
 }
 
 func TestPingWithArguments(t *testing.T) {
-	handler := NewHandler(internal.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase())
 	resp := handler.HandleCommand([]string{"ping", "hello"})
 	if resp != "$5\r\nhello\r\n" {
 		t.Errorf("Expected '$5\\r\\nhello\\r\\n', got '%s'", resp)
@@ -22,7 +22,7 @@ func TestPingWithArguments(t *testing.T) {
 }
 
 func TestSetAndGet(t *testing.T) {
-	handler := NewHandler(internal.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase())
 	resp := handler.HandleCommand([]string{"get", "key"})
 	if resp != "_\r\n" {
 		t.Errorf("Expected '_\\r\\n', got '%s'", resp)
@@ -38,7 +38,7 @@ func TestSetAndGet(t *testing.T) {
 }
 
 func TestMgetAndMSet(t *testing.T) {
-	handler := NewHandler(internal.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase())
 	resp := handler.HandleCommand([]string{"mset", "key1", "val1", "key2", "val2"})
 	if resp != "+OK\r\n" {
 		t.Errorf("Expected '+OK\\r\\n', got '%s'", resp)
@@ -50,7 +50,7 @@ func TestMgetAndMSet(t *testing.T) {
 }
 
 func TestIncrAndDecr(t *testing.T) {
-	handler := NewHandler(internal.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase())
 	resp := handler.HandleCommand([]string{"incr", "key"})
 	if resp != ":1\r\n" {
 		t.Errorf("Expected ':1\\r\\n', got '%s'", resp)
@@ -74,7 +74,7 @@ func TestIncrAndDecr(t *testing.T) {
 }
 
 func TestIncrByAndDecrBy(t *testing.T) {
-	handler := NewHandler(internal.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase())
 	resp := handler.HandleCommand([]string{"incrby", "key", "5"})
 	if resp != ":5\r\n" {
 		t.Errorf("Expected ':5\\r\\n', got '%s'", resp)
