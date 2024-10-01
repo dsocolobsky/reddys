@@ -21,6 +21,14 @@ func CraftBulkString(message string) string {
 	return "$" + length + "\r\n" + message + "\r\n"
 }
 
+// CraftAppropiateString crafts a RESP bulk string if message is not empty, otherwise it crafts a null string
+func CraftAppropiateString(message string) string {
+	if message == "" {
+		return CraftNullString()
+	}
+	return CraftBulkString(message)
+}
+
 func CraftNullString() string {
 	return "_\r\n"
 }

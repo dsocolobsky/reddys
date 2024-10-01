@@ -36,11 +36,7 @@ func (h *Handler) get(commands []string) string {
 	h.database.Lock()
 	value := h.database.Get(key)
 	h.database.Unlock()
-	if value == "" {
-		return resp.CraftNullString()
-	} else {
-		return resp.CraftBulkString(value)
-	}
+	return resp.CraftAppropiateString(value)
 }
 
 func (h *Handler) set(commands []string) string {
@@ -87,6 +83,31 @@ func (h *Handler) mset(commands []string) string {
 		value := commands[i+1]
 		h.database.Set(key, value)
 	}
+	return resp.CraftSimpleString("OK")
+}
+
+func (h *Handler) hget(commands []string) string {
+	if len(commands) != 3 {
+		return resp.CraftSimpleError("wrong number of arguments for 'hget' command")
+	}
+	key := commands[1]
+	field := commands[2]
+	h.database.Lock()
+	value := h.database.HGet(key, field)
+	h.database.Unlock()
+	return resp.CraftAppropiateString(value)
+}
+
+func (h *Handler) hset(commands []string) string {
+	if len(commands) != 4 {
+		return resp.CraftSimpleError("wrong number of arguments for 'hset' command")
+	}
+	key := commands[1]
+	field := commands[2]
+	value := commands[3]
+	h.database.Lock()
+	h.database.HSet(key, field, value)
+	h.database.Unlock()
 	return resp.CraftSimpleString("OK")
 }
 
@@ -160,6 +181,10 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.mget(commands)
 	case "MSET":
 		return h.mset(commands)
+	case "HGET":
+		return h.hget(commands)
+	case "HSET":
+		return h.hset(commands)
 	case "INCR":
 		return h.incr(commands)
 	case "DECR":
