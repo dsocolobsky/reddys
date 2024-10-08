@@ -148,6 +148,16 @@ func (h *Handler) hset(commands []string) string {
 	return resp.MarshalString("OK")
 }
 
+func (h *Handler) hgetAll(commands []string) string {
+	if len(commands) != 2 {
+		return resp.MarshalError("wrong number of arguments for 'hgetAll' command")
+	}
+	key := commands[1]
+	fields := h.database.HGetAll(key)
+	arr := resp.MarshalArrayOfBulkStrings(fields) // TODO In RESP3 this should be a map
+	return arr
+}
+
 func (h *Handler) incr(commands []string) string {
 	if len(commands) != 2 {
 		return resp.MarshalError("wrong number of arguments for 'incr' command")
@@ -222,6 +232,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.hget(commands)
 	case "HSET":
 		return h.hset(commands)
+	case "HGETALL":
+		return h.hgetAll(commands)
 	case "INCR":
 		return h.incr(commands)
 	case "DECR":

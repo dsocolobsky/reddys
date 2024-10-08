@@ -47,6 +47,22 @@ func assertCommandString(t *testing.T, conn *net.Conn, command string, expected 
 	}
 }
 
+func assertCommandArrayResponse(t *testing.T, conn *net.Conn, command string, expected []string) {
+	reply, err := sendCommand(conn, command)
+	if err != nil {
+		t.Fatalf("Failed to send %s command: %v", command, err)
+	}
+	res, _ := resp.UnmarshalArray(reply)
+	if len(res) != len(expected) {
+		t.Fatalf("Expected %d elements, got %d", len(expected), len(res))
+	}
+	for i, v := range expected {
+		if v != res[i] {
+			t.Fatalf("Expected %s, got %s", v, res[i])
+		}
+	}
+}
+
 func TestServer_Simple(t *testing.T) {
 	server := createServer()
 	go server.Serve()
@@ -69,6 +85,7 @@ func TestServer_Simple(t *testing.T) {
 	assertCommandString(t, &conn, "HSET player name duke", "OK")
 	assertCommandString(t, &conn, "HGET player life", "100")
 	assertCommandString(t, &conn, "HGET player name", "duke")
+	assertCommandArrayResponse(t, &conn, "HGETALL player", []string{"life", "100", "name", "duke"})
 	assertCommandString(t, &conn, "DBSIZE", "3")
 }
 

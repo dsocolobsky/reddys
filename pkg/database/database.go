@@ -8,6 +8,7 @@ type Database interface {
 	Set(key, value string)
 	HGet(key, field string) string
 	HSet(key, field, value string)
+	HGetAll(key string) []string
 	Lock()
 	Unlock()
 	Size() int
@@ -52,6 +53,17 @@ func (db *MapDatabase) HSet(key, field, value string) {
 		db.hset[key] = make(map[string]string)
 	}
 	db.hset[key][field] = value
+}
+
+// HGetAll retrieves all the fields in a hash as a list of key/value pairs
+func (db *MapDatabase) HGetAll(key string) []string {
+	var res []string
+	keyvals := db.hset[key]
+	for field, value := range keyvals {
+		res = append(res, field)
+		res = append(res, value)
+	}
+	return res
 }
 
 // Lock locks the database

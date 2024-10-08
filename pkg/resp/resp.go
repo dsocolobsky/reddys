@@ -44,7 +44,7 @@ func MarshalInteger(val int) string {
 // MarshalArray crafts a RESP array of the type "*length\r\nmessage1\r\nmessage2\r\n"
 func MarshalArray(array []string) string {
 	nElems := len(array)
-	return "*" + fmt.Sprintf("%d\r\n", nElems) + strings.Join(array, "")
+	return "*" + fmt.Sprintf("%d\r\n", nElems) + strings.Join(array, "\r\n") + "\r\n"
 }
 
 // MarshalArrayOfBulkStrings crafts a RESP array of bulk strings of the type "*length\r\n$length1\r\nmessage1\r\n$length2\r\nmessage2\r\n"
