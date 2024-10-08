@@ -158,4 +158,9 @@ func TestServer_StringOperations(t *testing.T) {
 	// APPEND non-existing key
 	assertCommandString(t, &conn, "APPEND bar baz", "3")
 	assertCommandString(t, &conn, "GET bar", "baz")
+	// STRLEN existing key
+	assertCommandString(t, &conn, "SET foo bar", "OK")
+	assertCommandString(t, &conn, "STRLEN foo", "3")
+	// STRLEN non-existing key
+	assertCommandString(t, &conn, "STRLEN nonexistent", "0")
 }

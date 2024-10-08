@@ -261,6 +261,17 @@ func (h *Handler) getSet(commands []string) string {
 	return resp.MarshalBulkString(oldVal)
 }
 
+func (h *Handler) strlen(commands []string) string {
+	if len(commands) != 2 {
+		return resp.MarshalError("wrong number of arguments for 'strlen' command")
+	}
+	key := commands[1]
+	h.database.Lock()
+	value := h.database.Get(key)
+	h.database.Unlock()
+	return resp.MarshalInteger(len(value))
+}
+
 func (h *Handler) HandleCommand(commands []string) string {
 	command := strings.ToUpper(strings.TrimSpace(commands[0]))
 
@@ -297,6 +308,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.getDel(commands)
 	case "GETSET":
 		return h.getSet(commands)
+	case "STRLEN":
+		return h.strlen(commands)
 	}
 	return resp.MarshalError("ERR unknown command")
 }
