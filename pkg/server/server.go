@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/dsocolobsky/reddys/pkg/resp"
+	"io"
 	"net"
 	"strings"
 )
@@ -51,7 +52,10 @@ func (srv *Server) handleConn(conn net.Conn) {
 	buffer := make([]byte, 1024)
 	for {
 		n, err := conn.Read(buffer)
-		if err != nil {
+		if err == net.ErrClosed || err == io.EOF || n == 0 {
+			fmt.Println("Connection closed")
+			return
+		} else if err != nil {
 			panic(err)
 		}
 		msg := string(buffer[:n])
