@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type Persister interface {
+	Write(command string)
+	Read() [][]string
+}
+
 type AOF struct {
 	file *os.File
 	mu   *sync.Mutex
