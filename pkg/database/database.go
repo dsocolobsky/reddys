@@ -10,6 +10,7 @@ type Database interface {
 	HSet(key, field, value string)
 	Lock()
 	Unlock()
+	Size() int
 }
 
 // MapDatabase is an in-memory database that uses a map as the underlying data store
@@ -61,4 +62,9 @@ func (db *MapDatabase) Lock() {
 // Unlock unlocks the database
 func (db *MapDatabase) Unlock() {
 	db.mu.Unlock()
+}
+
+// Size returns the number of keys in the database
+func (db *MapDatabase) Size() int {
+	return len(db.data) + len(db.hset)
 }

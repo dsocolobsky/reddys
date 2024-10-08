@@ -55,6 +55,16 @@ func (h *Handler) ping(commands []string) string {
 	return resp.MarshalError("wrong number of arguments for 'ping' command")
 }
 
+func (h *Handler) dbSize(commands []string) string {
+	if len(commands) != 1 {
+		return resp.MarshalError("wrong number of arguments for 'dbsize' command")
+	}
+	h.database.Lock()
+	size := h.database.Size()
+	h.database.Unlock()
+	return resp.MarshalInteger(size)
+}
+
 func (h *Handler) get(commands []string) string {
 	if len(commands) != 2 {
 		return resp.MarshalError("wrong number of arguments for 'get' command")
@@ -220,6 +230,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.incrBy(commands)
 	case "DECRBY":
 		return h.decrBy(commands)
+	case "DBSIZE":
+		return h.dbSize(commands)
 	}
 	return resp.MarshalError("ERR unknown command")
 }
