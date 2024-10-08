@@ -131,3 +131,24 @@ func TestServer_ManyConnections(t *testing.T) {
 		assertCommandString(t, &conns[i], "SET foo bar", "OK")
 	}
 }
+
+func TestServer_StringOperations(t *testing.T) {
+	server := createServer()
+	go server.Serve()
+	//defer server.Close() (check this later)
+	time.Sleep(100 * time.Millisecond)
+
+	conn, err := net.Dial("tcp", "localhost:6379")
+	if err != nil {
+		t.Fatalf("Failed to connect to server: %v", err)
+	}
+	defer conn.Close()
+
+	// APPEND existing key
+	assertCommandString(t, &conn, "SET foo bar", "OK")
+	assertCommandString(t, &conn, "APPEND foo baz", "6")
+	assertCommandString(t, &conn, "GET foo", "barbaz")
+	// APPEND non-existing key
+	assertCommandString(t, &conn, "APPEND bar baz", "3")
+	assertCommandString(t, &conn, "GET bar", "baz")
+}

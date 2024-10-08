@@ -214,6 +214,26 @@ func (h *Handler) _intModifyBy(key string, amount int) string {
 	return resp.MarshalInteger(intVal)
 }
 
+func (h *Handler) append(commands []string) string {
+	if len(commands) < 3 {
+		return resp.MarshalError("not enough arguments")
+	}
+	key := commands[1]
+	toAppend := commands[2]
+
+	val := h.database.Get(key)
+	if val == "" {
+		val = toAppend
+	} else {
+		val = val + toAppend
+	}
+	h.database.Lock()
+	h.database.Set(key, val)
+	h.database.Unlock()
+
+	return resp.MarshalInteger(len(val))
+}
+
 func (h *Handler) HandleCommand(commands []string) string {
 	command := strings.ToUpper(strings.TrimSpace(commands[0]))
 
@@ -244,6 +264,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.decrBy(commands)
 	case "DBSIZE":
 		return h.dbSize(commands)
+	case "APPEND":
+		return h.append(commands)
 	}
 	return resp.MarshalError("ERR unknown command")
 }
