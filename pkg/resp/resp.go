@@ -41,9 +41,20 @@ func MarshalInteger(val int) string {
 	return fmt.Sprintf(":%d\r\n", val)
 }
 
+// MarshalArray crafts a RESP array of the type "*length\r\nmessage1\r\nmessage2\r\n"
 func MarshalArray(array []string) string {
 	nElems := len(array)
 	return "*" + fmt.Sprintf("%d\r\n", nElems) + strings.Join(array, "")
+}
+
+// MarshalArrayOfBulkStrings crafts a RESP array of bulk strings of the type "*length\r\n$length1\r\nmessage1\r\n$length2\r\nmessage2\r\n"
+func MarshalArrayOfBulkStrings(array []string) string {
+	nElems := len(array)
+	res := "*" + fmt.Sprintf("%d\r\n", nElems)
+	for _, elem := range array {
+		res += MarshalBulkString(elem)
+	}
+	return res
 }
 
 // UnmarshalBulkString reads a RESP bulk string of the type "$length\r\nmessage\r\n" into a string "message"
@@ -71,6 +82,7 @@ func UnmarshalBulkString(message string) (string, int) {
 func UnmarshalArray(message string) ([]string, int) {
 	totalRead := 0
 	if message[0] != '*' {
+		fmt.Println(message)
 		panic("Invalid array")
 	}
 	message = message[1:]
@@ -173,6 +185,8 @@ func UnmarshalRESP(message string) (string, int) {
 		return UnmarshalBoolean(message)
 	case ':':
 		return UnmarshalInteger(message)
+	case '_':
+		return "", 3
 	case '*':
 		// Not yet implemented, type error
 		//return UnmarshalArray(message)

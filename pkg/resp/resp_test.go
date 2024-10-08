@@ -61,6 +61,14 @@ func TestMarshalInteger2Integer(t *testing.T) {
 	}
 }
 
+func TestMarshalArrayOfBulkStrings(t *testing.T) {
+	expected := "*3\r\n$3\r\none\r\n$3\r\ntwo\r\n$5\r\nthree\r\n"
+	actual := MarshalArrayOfBulkStrings([]string{"one", "two", "three"})
+	if expected != actual {
+		t.Errorf("Expected %s but got %s", expected, actual)
+	}
+}
+
 func TestUnmarshalBulkString(t *testing.T) {
 	expected := "message"
 	raw := "$7\r\nmessage\r\n"

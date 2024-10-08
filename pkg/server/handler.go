@@ -31,6 +31,9 @@ func NewHandler(database database.Database, persister database.Persister) *Handl
 }
 
 func (h *Handler) readFromDisk() {
+	if h.persister == nil {
+		return
+	}
 	commands := h.persister.Read()
 	for _, command := range commands {
 		h.HandleCommand(command)
