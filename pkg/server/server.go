@@ -9,13 +9,26 @@ import (
 	"strings"
 )
 
-type Handler struct {
-	database database.Database
+// Commands that should write to disk
+var writeCommands = map[string]bool{
+	"SET":    true,
+	"MSET":   true,
+	"HSET":   true,
+	"INCR":   true,
+	"DECR":   true,
+	"INCRBY": true,
+	"DECRBY": true,
 }
 
-func NewHandler(database database.Database) *Handler {
+type Handler struct {
+	database database.Database
+	aof      *database.AOF
+}
+
+func NewHandler(database database.Database, aof *database.AOF) *Handler {
 	return &Handler{
 		database: database,
+		aof:      aof,
 	}
 }
 
@@ -198,7 +211,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 }
 
 func Serve() {
-	handler := NewHandler(database.NewMapDatabase())
+	handler := NewHandler(database.NewMapDatabase(), database.NewAOF("database.aof"))
+	defer handler.aof.Close()
 
 	server, err := net.Listen("tcp", "localhost:6379")
 	if err != nil {
@@ -237,7 +251,11 @@ func handleConn(conn net.Conn, handler *Handler) {
 		if msg == "" {
 			continue
 		}
+		fmt.Println(msg)
 		arr := toCommandArray(msg)
+		if len(arr) > 0 && writeCommands[strings.ToUpper(arr[0])] {
+			handler.aof.Write(msg)
+		}
 		res := handler.HandleCommand(arr)
 		_, err = conn.Write([]byte(res))
 		if err != nil {

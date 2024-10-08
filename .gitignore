@@ -21,3 +21,5 @@
 
 # Go module files
 go.sum
+
+*.aof

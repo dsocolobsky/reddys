@@ -74,7 +74,6 @@ func ReadBulkString(message string) (string, int) {
 }
 
 func ReadArray(message string) []string {
-	fmt.Println("Reading array: ", message)
 	if message[0] != '*' {
 		panic("Invalid array")
 	}
@@ -87,11 +86,9 @@ func ReadArray(message string) []string {
 	message = message[firstLineBreakIdx+2:]
 	length := 0
 	fmt.Sscanf(lengthStr, "%d", &length)
-	fmt.Println("Array length: ", length)
 	array := make([]string, length)
 	arrayIdx := 0
 	for len(message) > 0 {
-		fmt.Println("msg: ", message)
 		msg, read := ReadRESP(message)
 		array[arrayIdx] = msg
 		message = message[read:]
