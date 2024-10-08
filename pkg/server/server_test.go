@@ -87,6 +87,9 @@ func TestServer_Simple(t *testing.T) {
 	assertCommandString(t, &conn, "HGET player name", "duke")
 	assertCommandArrayResponse(t, &conn, "HGETALL player", []string{"life", "100", "name", "duke"})
 	assertCommandString(t, &conn, "DBSIZE", "3")
+	// GETDEL
+	assertCommandString(t, &conn, "GETDEL val", "2")
+	assertCommandString(t, &conn, "DBSIZE", "3")
 }
 
 func TestServer_TwoConnections(t *testing.T) {

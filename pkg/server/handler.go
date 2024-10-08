@@ -16,6 +16,8 @@ var writeCommands = map[string]bool{
 	"DECR":   true,
 	"INCRBY": true,
 	"DECRBY": true,
+	"APPEND": true,
+	"DEL":    true,
 }
 
 type Handler struct {
@@ -234,6 +236,18 @@ func (h *Handler) append(commands []string) string {
 	return resp.MarshalInteger(len(val))
 }
 
+func (h *Handler) getDel(commands []string) string {
+	if len(commands) != 2 {
+		return resp.MarshalError("wrong number of arguments for 'getDel' command")
+	}
+	key := commands[1]
+	h.database.Lock()
+	val := h.database.Get(key)
+	h.database.Del(key)
+	h.database.Unlock()
+	return resp.MarshalBulkString(val)
+}
+
 func (h *Handler) HandleCommand(commands []string) string {
 	command := strings.ToUpper(strings.TrimSpace(commands[0]))
 
@@ -266,6 +280,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.dbSize(commands)
 	case "APPEND":
 		return h.append(commands)
+	case "GETDEL":
+		return h.getDel(commands)
 	}
 	return resp.MarshalError("ERR unknown command")
 }

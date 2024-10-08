@@ -12,6 +12,7 @@ type Database interface {
 	Lock()
 	Unlock()
 	Size() int
+	Del(key string)
 }
 
 // MapDatabase is an in-memory database that uses a map as the underlying data store
@@ -79,4 +80,10 @@ func (db *MapDatabase) Unlock() {
 // Size returns the number of keys in the database
 func (db *MapDatabase) Size() int {
 	return len(db.data) + len(db.hset)
+}
+
+// Del deletes the key from the database
+func (db *MapDatabase) Del(key string) {
+	db.data[key] = ""
+	delete(db.hset, key)
 }
