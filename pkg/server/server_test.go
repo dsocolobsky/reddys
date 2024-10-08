@@ -90,6 +90,10 @@ func TestServer_Simple(t *testing.T) {
 	// GETDEL
 	assertCommandString(t, &conn, "GETDEL val", "2")
 	assertCommandString(t, &conn, "DBSIZE", "3")
+	// GETSET
+	assertCommandString(t, &conn, "GET foo", "bar")
+	assertCommandString(t, &conn, "GETSET foo baz", "bar")
+	assertCommandString(t, &conn, "GET foo", "baz")
 }
 
 func TestServer_TwoConnections(t *testing.T) {

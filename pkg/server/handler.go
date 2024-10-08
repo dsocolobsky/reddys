@@ -248,6 +248,19 @@ func (h *Handler) getDel(commands []string) string {
 	return resp.MarshalBulkString(val)
 }
 
+func (h *Handler) getSet(commands []string) string {
+	if len(commands) != 3 {
+		return resp.MarshalError("wrong number of arguments for 'getSet' command")
+	}
+	key := commands[1]
+	value := commands[2]
+	h.database.Lock()
+	oldVal := h.database.Get(key)
+	h.database.Set(key, value)
+	h.database.Unlock()
+	return resp.MarshalBulkString(oldVal)
+}
+
 func (h *Handler) HandleCommand(commands []string) string {
 	command := strings.ToUpper(strings.TrimSpace(commands[0]))
 
@@ -282,6 +295,8 @@ func (h *Handler) HandleCommand(commands []string) string {
 		return h.append(commands)
 	case "GETDEL":
 		return h.getDel(commands)
+	case "GETSET":
+		return h.getSet(commands)
 	}
 	return resp.MarshalError("ERR unknown command")
 }
