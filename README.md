@@ -7,3 +7,7 @@ So far I've implemented:
 Run via `go run github.com/dsocolobsky/reddys/cmd/server`.
 
 Then you may connect via `redis-cli`
+
+You can also benchmark multiple connections via `redis-benchmark` like so:
+
+`redis-benchmark -t set,incr,decr,get,hset,hget,mset -n 10000`
