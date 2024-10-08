@@ -1,17 +1,16 @@
 package database
 
 import (
-	"bufio"
 	"fmt"
+	"github.com/dsocolobsky/reddys/pkg/resp"
 	"os"
 	"sync"
 	"time"
 )
 
 type AOF struct {
-	file   *os.File
-	reader *bufio.Reader
-	mu     *sync.Mutex
+	file *os.File
+	mu   *sync.Mutex
 }
 
 func NewAOF(filepath string) *AOF {
@@ -20,9 +19,8 @@ func NewAOF(filepath string) *AOF {
 		panic(err)
 	}
 	aof := &AOF{
-		file:   f,
-		reader: bufio.NewReader(f),
-		mu:     &sync.Mutex{},
+		file: f,
+		mu:   &sync.Mutex{},
 	}
 	// Sync every 1 second
 	go func() {
@@ -57,4 +55,22 @@ func (a *AOF) Write(command string) {
 		panic(err)
 	}
 	fmt.Println("Wrote to AOF: ", command)
+}
+
+func (a *AOF) Read() [][]string {
+	fmt.Println("Reading AOF from " + a.file.Name())
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	content, err := os.ReadFile(a.file.Name())
+	if err != nil {
+		fmt.Println("Error reading AOF file")
+		return nil
+	}
+	if len(content) == 0 {
+		fmt.Println("Empty AOF file")
+		return nil
+	}
+
+	return resp.ReadManyArrays(string(content))
 }

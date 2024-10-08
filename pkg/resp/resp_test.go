@@ -135,7 +135,8 @@ func TestReadInteger(t *testing.T) {
 
 func TestReadArrayOfSimpleStrings(t *testing.T) {
 	expected := []string{"one", "two", "three"}
-	actual := ReadArray("*3\r\n+one\r\n+two\r\n+three\r\n")
+	str := "*3\r\n+one\r\n+two\r\n+three\r\n"
+	actual, read := ReadArray(str)
 	fmt.Println(expected)
 	fmt.Println(actual)
 	for i, v := range expected {
@@ -143,36 +144,83 @@ func TestReadArrayOfSimpleStrings(t *testing.T) {
 			t.Errorf("Expected %s but got %s", v, actual[i])
 		}
 	}
+	if read != len(str) {
+		t.Errorf("Expected to read %d but got %d", len(str), read)
+	}
 }
 
 func TestReadArrayOfBulkStrings(t *testing.T) {
 	expected := []string{"one", "two", "three"}
-	actual := ReadArray("*3\r\n$3\r\none\r\n$3\r\ntwo\r\n$5\r\nthree\r\n")
+	str := "*3\r\n$3\r\none\r\n$3\r\ntwo\r\n$5\r\nthree\r\n"
+	actual, read := ReadArray(str)
 	fmt.Println(expected)
 	fmt.Println(actual)
 	for i, v := range expected {
 		if v != actual[i] {
 			t.Errorf("Expected %s but got %s", v, actual[i])
+		}
+	}
+	if read != len(str) {
+		t.Errorf("Expected to read %d but got %d", len(str), read)
+	}
+}
+
+func TestReadArrayOfManyBulkStrings(t *testing.T) {
+	expected := []string{"one", "two", "three"}
+	str1 := "*3\r\n$3\r\none\r\n$3\r\ntwo\r\n$5\r\nthree\r\n"
+	str2 := "*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n"
+	actual, read := ReadArray(str1 + str2)
+	fmt.Println(expected)
+	fmt.Println(actual)
+	for i, v := range expected {
+		if v != actual[i] {
+			t.Errorf("Expected %s but got %s", v, actual[i])
+		}
+	}
+	if read != len(str1) {
+		t.Errorf("Expected to read %d but got %d", len(str1), read)
+	}
+}
+
+func TestReadManyArrays(t *testing.T) {
+	expected := [][]string{
+		{"one", "two", "three"},
+		{"four", "five", "six"},
+	}
+	actual := ReadManyArrays("*3\r\n+one\r\n+two\r\n+three\r\n*3\r\n+four\r\n+five\r\n+six\r\n")
+	for i, arr := range expected {
+		for j, v := range arr {
+			if v != actual[i][j] {
+				t.Errorf("Expected %s but got %s", v, actual[i][j])
+			}
 		}
 	}
 }
 
 func TestReadArrayOfBooleans(t *testing.T) {
 	expected := []string{"true", "false", "true"}
-	actual := ReadArray("*3\r\n#t\r\n#f\r\n#t\r\n")
+	str := "*3\r\n#t\r\n#f\r\n#t\r\n"
+	actual, read := ReadArray(str)
 	for i, v := range expected {
 		if v != actual[i] {
 			t.Errorf("Expected %s but got %s", v, actual[i])
 		}
 	}
+	if read != len(str) {
+		t.Errorf("Expected to read %d but got %d", len(str), read)
+	}
 }
 
 func TestReadArrayOfIntegers(t *testing.T) {
 	expected := []string{"10", "-9", "7"}
-	actual := ReadArray("*3\r\n:10\r\n:-9\r\n:+7\r\n")
+	str := "*3\r\n:10\r\n:-9\r\n:+7\r\n"
+	actual, read := ReadArray(str)
 	for i, v := range expected {
 		if v != actual[i] {
 			t.Errorf("Expected %s but got %s", v, actual[i])
 		}
+	}
+	if read != len(str) {
+		t.Errorf("Expected to read %d but got %d", len(str), read)
 	}
 }

@@ -220,6 +220,12 @@ func Serve() {
 	}
 	defer server.Close()
 
+	aofCommands := handler.aof.Read()
+	for _, command := range aofCommands {
+		fmt.Println("AOF command: ", command)
+		handler.HandleCommand(command)
+	}
+
 	fmt.Println("Server running on localhost:6379")
 	for {
 		conn, err := server.Accept()
@@ -228,14 +234,6 @@ func Serve() {
 		}
 		go handleConn(conn, handler)
 	}
-}
-
-func toCommandArray(message string) []string {
-	arr := resp.ReadArray(message)
-	if len(arr) == 0 {
-		fmt.Println("Empty array of commands!")
-	}
-	return arr
 }
 
 func handleConn(conn net.Conn, handler *Handler) {
@@ -252,7 +250,10 @@ func handleConn(conn net.Conn, handler *Handler) {
 			continue
 		}
 		fmt.Println(msg)
-		arr := toCommandArray(msg)
+		arr, _ := resp.ReadArray(msg)
+		if len(arr) == 0 {
+			fmt.Println("Empty array of commands!")
+		}
 		if len(arr) > 0 && writeCommands[strings.ToUpper(arr[0])] {
 			handler.aof.Write(msg)
 		}

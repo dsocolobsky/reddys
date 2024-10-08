@@ -73,28 +73,42 @@ func ReadBulkString(message string) (string, int) {
 	return message[:length], length + 4 + 1 + len(lengthStr)
 }
 
-func ReadArray(message string) []string {
+func ReadArray(message string) ([]string, int) {
+	totalRead := 0
 	if message[0] != '*' {
 		panic("Invalid array")
 	}
 	message = message[1:]
+	totalRead += 1
 	firstLineBreakIdx := strings.Index(message, "\r\n")
 	if firstLineBreakIdx == -1 {
 		panic("Invalid array")
 	}
-	lengthStr := message[:firstLineBreakIdx]
+	numElemsStr := message[:firstLineBreakIdx]
 	message = message[firstLineBreakIdx+2:]
-	length := 0
-	fmt.Sscanf(lengthStr, "%d", &length)
-	array := make([]string, length)
+	totalRead += firstLineBreakIdx + 2
+	numElems := 0
+	fmt.Sscanf(numElemsStr, "%d", &numElems)
+	array := make([]string, numElems)
 	arrayIdx := 0
-	for len(message) > 0 {
+	for arrayIdx < numElems {
 		msg, read := ReadRESP(message)
 		array[arrayIdx] = msg
+		totalRead += read
 		message = message[read:]
 		arrayIdx++
 	}
-	return array
+	return array, totalRead
+}
+
+func ReadManyArrays(message string) [][]string {
+	arrays := make([][]string, 0)
+	for len(message) > 0 {
+		arr, read := ReadArray(message)
+		arrays = append(arrays, arr)
+		message = message[read:]
+	}
+	return arrays
 }
 
 func ReadSimpleString(message string) (string, int) {
