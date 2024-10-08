@@ -45,39 +45,39 @@ func (h *Handler) Persist(command string) {
 
 func (h *Handler) ping(commands []string) string {
 	if len(commands) == 1 {
-		return resp.CraftSimpleString("PONG")
+		return resp.MarshalString("PONG")
 	} else if len(commands) == 2 {
-		return resp.CraftBulkString(commands[1])
+		return resp.MarshalBulkString(commands[1])
 	}
-	return resp.CraftSimpleError("wrong number of arguments for 'ping' command")
+	return resp.MarshalError("wrong number of arguments for 'ping' command")
 }
 
 func (h *Handler) get(commands []string) string {
 	if len(commands) != 2 {
-		return resp.CraftSimpleError("wrong number of arguments for 'get' command")
+		return resp.MarshalError("wrong number of arguments for 'get' command")
 	}
 	key := commands[1]
 	h.database.Lock()
 	value := h.database.Get(key)
 	h.database.Unlock()
-	return resp.CraftAppropiateString(value)
+	return resp.MarshalBulkString(value)
 }
 
 func (h *Handler) set(commands []string) string {
 	if len(commands) != 3 {
-		return resp.CraftSimpleError("wrong number of arguments for 'set' command")
+		return resp.MarshalError("wrong number of arguments for 'set' command")
 	}
 	key := commands[1]
 	value := commands[2]
 	h.database.Lock()
 	h.database.Set(key, value)
 	h.database.Unlock()
-	return resp.CraftSimpleString("OK")
+	return resp.MarshalString("OK")
 }
 
 func (h *Handler) mget(commands []string) string {
 	if len(commands) < 2 {
-		return resp.CraftSimpleError("wrong number of arguments for 'mget' command")
+		return resp.MarshalError("wrong number of arguments for 'mget' command")
 	}
 	var values []string
 	h.database.Lock()
@@ -87,18 +87,18 @@ func (h *Handler) mget(commands []string) string {
 		value := h.database.Get(key)
 		var st string
 		if value == "" {
-			st = resp.CraftNullString()
+			st = resp.MarshalNullString()
 		} else {
-			st = resp.CraftBulkString(value)
+			st = resp.MarshalBulkString(value)
 		}
 		values = append(values, st)
 	}
-	return resp.CraftArray(values)
+	return resp.MarshalArray(values)
 }
 
 func (h *Handler) mset(commands []string) string {
 	if len(commands) < 3 || len(commands)%2 != 1 {
-		return resp.CraftSimpleError("wrong number of arguments for 'mset' command")
+		return resp.MarshalError("wrong number of arguments for 'mset' command")
 	}
 	h.database.Lock()
 	defer h.database.Unlock()
@@ -107,24 +107,24 @@ func (h *Handler) mset(commands []string) string {
 		value := commands[i+1]
 		h.database.Set(key, value)
 	}
-	return resp.CraftSimpleString("OK")
+	return resp.MarshalString("OK")
 }
 
 func (h *Handler) hget(commands []string) string {
 	if len(commands) != 3 {
-		return resp.CraftSimpleError("wrong number of arguments for 'hget' command")
+		return resp.MarshalError("wrong number of arguments for 'hget' command")
 	}
 	key := commands[1]
 	field := commands[2]
 	h.database.Lock()
 	value := h.database.HGet(key, field)
 	h.database.Unlock()
-	return resp.CraftAppropiateString(value)
+	return resp.MarshalBulkString(value)
 }
 
 func (h *Handler) hset(commands []string) string {
 	if len(commands) != 4 {
-		return resp.CraftSimpleError("wrong number of arguments for 'hset' command")
+		return resp.MarshalError("wrong number of arguments for 'hset' command")
 	}
 	key := commands[1]
 	field := commands[2]
@@ -132,41 +132,41 @@ func (h *Handler) hset(commands []string) string {
 	h.database.Lock()
 	h.database.HSet(key, field, value)
 	h.database.Unlock()
-	return resp.CraftSimpleString("OK")
+	return resp.MarshalString("OK")
 }
 
 func (h *Handler) incr(commands []string) string {
 	if len(commands) != 2 {
-		return resp.CraftSimpleError("wrong number of arguments for 'incr' command")
+		return resp.MarshalError("wrong number of arguments for 'incr' command")
 	}
 	return h._intModifyBy(commands[1], 1)
 }
 
 func (h *Handler) decr(commands []string) string {
 	if len(commands) != 2 {
-		return resp.CraftSimpleError("wrong number of arguments for 'decr' command")
+		return resp.MarshalError("wrong number of arguments for 'decr' command")
 	}
 	return h._intModifyBy(commands[1], -1)
 }
 
 func (h *Handler) incrBy(commands []string) string {
 	if len(commands) != 3 {
-		return resp.CraftSimpleError("wrong number of arguments for 'incrby' command")
+		return resp.MarshalError("wrong number of arguments for 'incrby' command")
 	}
 	amount, err := strconv.Atoi(commands[2])
 	if err != nil {
-		return resp.CraftSimpleError("value is not an integer or out of range")
+		return resp.MarshalError("value is not an integer or out of range")
 	}
 	return h._intModifyBy(commands[1], amount)
 }
 
 func (h *Handler) decrBy(commands []string) string {
 	if len(commands) != 3 {
-		return resp.CraftSimpleError("wrong number of arguments for 'decrby' command")
+		return resp.MarshalError("wrong number of arguments for 'decrby' command")
 	}
 	amount, err := strconv.Atoi(commands[2])
 	if err != nil {
-		return resp.CraftSimpleError("value is not an integer or out of range")
+		return resp.MarshalError("value is not an integer or out of range")
 	}
 	return h._intModifyBy(commands[1], -amount)
 }
@@ -183,12 +183,12 @@ func (h *Handler) _intModifyBy(key string, amount int) string {
 		var err error
 		intVal, err = strconv.Atoi(value)
 		if err != nil {
-			return resp.CraftSimpleError("value is not an integer or out of range")
+			return resp.MarshalError("value is not an integer or out of range")
 		}
 	}
 	intVal += amount
 	h.database.Set(key, strconv.Itoa(intVal))
-	return resp.CraftInteger(intVal)
+	return resp.MarshalInteger(intVal)
 }
 
 func (h *Handler) HandleCommand(commands []string) string {
@@ -218,5 +218,5 @@ func (h *Handler) HandleCommand(commands []string) string {
 	case "DECRBY":
 		return h.decrBy(commands)
 	}
-	return resp.CraftSimpleError("ERR unknown command")
+	return resp.MarshalError("ERR unknown command")
 }

@@ -5,66 +5,66 @@ import (
 	"testing"
 )
 
-func TestCraftSimpleString(t *testing.T) {
+func TestMarshalString(t *testing.T) {
 	expected := "+message\r\n"
-	actual := CraftSimpleString("message")
+	actual := MarshalString("message")
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestCraftSimpleError(t *testing.T) {
+func TestMarshalError(t *testing.T) {
 	expected := "-message\r\n"
-	actual := CraftSimpleError("message")
+	actual := MarshalError("message")
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestCraftBooleanTrue(t *testing.T) {
+func TestMarshalInteger2BooleanTrue(t *testing.T) {
 	expected := "#t\r\n"
-	actual := CraftBoolean(true)
+	actual := MarshalBoolean(true)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestCraftBooleanFalse(t *testing.T) {
+func TestMarshalInteger2BooleanFalse(t *testing.T) {
 	expected := "#f\r\n"
-	actual := CraftBoolean(false)
+	actual := MarshalBoolean(false)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestCraftBulkString(t *testing.T) {
+func TestMarshalInteger2BulkString(t *testing.T) {
 	expected := "$7\r\nmessage\r\n"
-	actual := CraftBulkString("message")
+	actual := MarshalBulkString("message")
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestCraftBulkStringNull(t *testing.T) {
-	expected := "$0\r\n\r\n"
-	actual := CraftBulkString("")
+func TestMarshalInteger2BulkStringNull(t *testing.T) {
+	expected := "_\r\n"
+	actual := MarshalBulkString("")
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestCraftInteger(t *testing.T) {
+func TestMarshalInteger2Integer(t *testing.T) {
 	expected := ":-123\r\n"
-	actual := CraftInteger(-123)
+	actual := MarshalInteger(-123)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
 }
 
-func TestReadBulkString(t *testing.T) {
+func TestUnmarshalBulkString(t *testing.T) {
 	expected := "message"
 	raw := "$7\r\nmessage\r\n"
-	actual, read := ReadBulkString(raw)
+	actual, read := UnmarshalBulkString(raw)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
@@ -73,10 +73,10 @@ func TestReadBulkString(t *testing.T) {
 	}
 }
 
-func TestReadBulkStringMultipleLines(t *testing.T) {
+func TestUnmarshalBulkStringMultipleLines(t *testing.T) {
 	expected := "some\nother\r\nmessage"
 	raw := "$19\r\nsome\nother\r\nmessage\r\n"
-	actual, read := ReadBulkString(raw)
+	actual, read := UnmarshalBulkString(raw)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
@@ -85,10 +85,10 @@ func TestReadBulkStringMultipleLines(t *testing.T) {
 	}
 }
 
-func TestReadSimpleString(t *testing.T) {
+func TestUnmarshalSimpleString(t *testing.T) {
 	expected := "message"
 	raw := "+message\r\n"
-	actual, read := ReadSimpleString(raw)
+	actual, read := UnmarshalString(raw)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
@@ -97,10 +97,10 @@ func TestReadSimpleString(t *testing.T) {
 	}
 }
 
-func TestReadSimpleError(t *testing.T) {
+func TestUnmarshalSimpleError(t *testing.T) {
 	expected := "message"
 	raw := "-message\r\n"
-	actual, read := ReadSimpleError(raw)
+	actual, read := UnmarshalError(raw)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
@@ -109,10 +109,10 @@ func TestReadSimpleError(t *testing.T) {
 	}
 }
 
-func TestReadBoolean(t *testing.T) {
+func TestUnmarshalBoolean(t *testing.T) {
 	expected := "true"
 	raw := "#t\r\n"
-	actual, read := ReadBoolean(raw)
+	actual, read := UnmarshalBoolean(raw)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
@@ -121,10 +121,10 @@ func TestReadBoolean(t *testing.T) {
 	}
 }
 
-func TestReadInteger(t *testing.T) {
+func TestUnmarshalInteger(t *testing.T) {
 	expected := "123"
 	raw := ":123\r\n"
-	actual, read := ReadInteger(raw)
+	actual, read := UnmarshalInteger(raw)
 	if expected != actual {
 		t.Errorf("Expected %s but got %s", expected, actual)
 	}
@@ -133,10 +133,10 @@ func TestReadInteger(t *testing.T) {
 	}
 }
 
-func TestReadArrayOfSimpleStrings(t *testing.T) {
+func TestUnmarshalArrayOfSimpleStrings(t *testing.T) {
 	expected := []string{"one", "two", "three"}
 	str := "*3\r\n+one\r\n+two\r\n+three\r\n"
-	actual, read := ReadArray(str)
+	actual, read := UnmarshalArray(str)
 	fmt.Println(expected)
 	fmt.Println(actual)
 	for i, v := range expected {
@@ -149,10 +149,10 @@ func TestReadArrayOfSimpleStrings(t *testing.T) {
 	}
 }
 
-func TestReadArrayOfBulkStrings(t *testing.T) {
+func TestUnmarshalArrayOfBulkStrings(t *testing.T) {
 	expected := []string{"one", "two", "three"}
 	str := "*3\r\n$3\r\none\r\n$3\r\ntwo\r\n$5\r\nthree\r\n"
-	actual, read := ReadArray(str)
+	actual, read := UnmarshalArray(str)
 	fmt.Println(expected)
 	fmt.Println(actual)
 	for i, v := range expected {
@@ -165,11 +165,11 @@ func TestReadArrayOfBulkStrings(t *testing.T) {
 	}
 }
 
-func TestReadArrayOfManyBulkStrings(t *testing.T) {
+func TestUnmarshalArrayOfManyBulkStrings(t *testing.T) {
 	expected := []string{"one", "two", "three"}
 	str1 := "*3\r\n$3\r\none\r\n$3\r\ntwo\r\n$5\r\nthree\r\n"
 	str2 := "*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n"
-	actual, read := ReadArray(str1 + str2)
+	actual, read := UnmarshalArray(str1 + str2)
 	fmt.Println(expected)
 	fmt.Println(actual)
 	for i, v := range expected {
@@ -182,12 +182,12 @@ func TestReadArrayOfManyBulkStrings(t *testing.T) {
 	}
 }
 
-func TestReadManyArrays(t *testing.T) {
+func TestUnmarshalManyArrays(t *testing.T) {
 	expected := [][]string{
 		{"one", "two", "three"},
 		{"four", "five", "six"},
 	}
-	actual := ReadManyArrays("*3\r\n+one\r\n+two\r\n+three\r\n*3\r\n+four\r\n+five\r\n+six\r\n")
+	actual := UnmarshalManyArrays("*3\r\n+one\r\n+two\r\n+three\r\n*3\r\n+four\r\n+five\r\n+six\r\n")
 	for i, arr := range expected {
 		for j, v := range arr {
 			if v != actual[i][j] {
@@ -197,10 +197,10 @@ func TestReadManyArrays(t *testing.T) {
 	}
 }
 
-func TestReadArrayOfBooleans(t *testing.T) {
+func TestUnmarshalArrayOfBooleans(t *testing.T) {
 	expected := []string{"true", "false", "true"}
 	str := "*3\r\n#t\r\n#f\r\n#t\r\n"
-	actual, read := ReadArray(str)
+	actual, read := UnmarshalArray(str)
 	for i, v := range expected {
 		if v != actual[i] {
 			t.Errorf("Expected %s but got %s", v, actual[i])
@@ -211,10 +211,10 @@ func TestReadArrayOfBooleans(t *testing.T) {
 	}
 }
 
-func TestReadArrayOfIntegers(t *testing.T) {
+func TestUnmarshalArrayOfIntegers(t *testing.T) {
 	expected := []string{"10", "-9", "7"}
 	str := "*3\r\n:10\r\n:-9\r\n:+7\r\n"
-	actual, read := ReadArray(str)
+	actual, read := UnmarshalArray(str)
 	for i, v := range expected {
 		if v != actual[i] {
 			t.Errorf("Expected %s but got %s", v, actual[i])

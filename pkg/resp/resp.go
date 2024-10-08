@@ -5,54 +5,49 @@ import (
 	"strings"
 )
 
-// CraftSimpleString crafts a RESP simple string of the type "+message\r\n"
-func CraftSimpleString(message string) string {
+// MarshalString crafts a RESP simple string of the type "+message\r\n"
+func MarshalString(message string) string {
 	return "+" + message + "\r\n"
 }
 
-// CraftSimpleError crafts a RESP simple error of the type "-message\r\n"
-func CraftSimpleError(message string) string {
+// MarshalError crafts a RESP simple error of the type "-message\r\n"
+func MarshalError(message string) string {
 	return "-" + message + "\r\n"
 }
 
-// CraftBulkString crafts a RESP bulk string of the type "$length\r\nmessage\r\n"
-func CraftBulkString(message string) string {
+// MarshalBulkString crafts a RESP bulk string of the type "$length\r\nmessage\r\n"
+func MarshalBulkString(message string) string {
+	if message == "" {
+		return MarshalNullString()
+	}
 	length := fmt.Sprintf("%d", len(message))
 	return "$" + length + "\r\n" + message + "\r\n"
 }
 
-// CraftAppropiateString crafts a RESP bulk string if message is not empty, otherwise it crafts a null string
-func CraftAppropiateString(message string) string {
-	if message == "" {
-		return CraftNullString()
-	}
-	return CraftBulkString(message)
-}
-
-func CraftNullString() string {
+func MarshalNullString() string {
 	return "_\r\n"
 }
 
-// CraftBoolean crafts a RESP boolean of the type "#t\r\n" or "#f\r\n"
-func CraftBoolean(val bool) string {
+// MarshalBoolean crafts a RESP boolean of the type "#t\r\n" or "#f\r\n"
+func MarshalBoolean(val bool) string {
 	if val {
 		return "#t\r\n"
 	}
 	return "#f\r\n"
 }
 
-// CraftInteger crafts a RESP integer of the type ":(+|-)?val\r\n"
-func CraftInteger(val int) string {
+// MarshalInteger crafts a RESP integer of the type ":(+|-)?val\r\n"
+func MarshalInteger(val int) string {
 	return fmt.Sprintf(":%d\r\n", val)
 }
 
-func CraftArray(array []string) string {
+func MarshalArray(array []string) string {
 	nElems := len(array)
 	return "*" + fmt.Sprintf("%d\r\n", nElems) + strings.Join(array, "")
 }
 
-// ReadBulkString reads a RESP bulk string of the type "$length\r\nmessage\r\n" into a string "message"
-func ReadBulkString(message string) (string, int) {
+// UnmarshalBulkString reads a RESP bulk string of the type "$length\r\nmessage\r\n" into a string "message"
+func UnmarshalBulkString(message string) (string, int) {
 	if message[0] != '$' {
 		panic("Invalid bulk string")
 	}
@@ -73,7 +68,7 @@ func ReadBulkString(message string) (string, int) {
 	return message[:length], length + 4 + 1 + len(lengthStr)
 }
 
-func ReadArray(message string) ([]string, int) {
+func UnmarshalArray(message string) ([]string, int) {
 	totalRead := 0
 	if message[0] != '*' {
 		panic("Invalid array")
@@ -92,7 +87,7 @@ func ReadArray(message string) ([]string, int) {
 	array := make([]string, numElems)
 	arrayIdx := 0
 	for arrayIdx < numElems {
-		msg, read := ReadRESP(message)
+		msg, read := UnmarshalRESP(message)
 		array[arrayIdx] = msg
 		totalRead += read
 		message = message[read:]
@@ -101,25 +96,25 @@ func ReadArray(message string) ([]string, int) {
 	return array, totalRead
 }
 
-func ReadManyArrays(message string) [][]string {
+func UnmarshalManyArrays(message string) [][]string {
 	arrays := make([][]string, 0)
 	for len(message) > 0 {
-		arr, read := ReadArray(message)
+		arr, read := UnmarshalArray(message)
 		arrays = append(arrays, arr)
 		message = message[read:]
 	}
 	return arrays
 }
 
-func ReadSimpleString(message string) (string, int) {
-	return readSimple(message, "+")
+func UnmarshalString(message string) (string, int) {
+	return unmarshalSimple(message, "+")
 }
 
-func ReadSimpleError(message string) (string, int) {
-	return readSimple(message, "-")
+func UnmarshalError(message string) (string, int) {
+	return unmarshalSimple(message, "-")
 }
 
-func readSimple(message string, ch string) (string, int) {
+func unmarshalSimple(message string, ch string) (string, int) {
 	if message[0] != ch[0] {
 		panic("Invalid simple string")
 	}
@@ -129,7 +124,7 @@ func readSimple(message string, ch string) (string, int) {
 	return splitted[0], len(splitted[0]) + 3 // Add 3 to account for the + and \r\n
 }
 
-func ReadBoolean(message string) (string, int) {
+func UnmarshalBoolean(message string) (string, int) {
 	// TODO We should return a boolean here, but for now let's do string.
 	fmt.Println("Boolean: ", message)
 	if len(message) < 4 || message[0] != '#' {
@@ -144,7 +139,7 @@ func ReadBoolean(message string) (string, int) {
 	panic("Invalid boolean, no t/f")
 }
 
-func ReadInteger(message string) (string, int) {
+func UnmarshalInteger(message string) (string, int) {
 	// TODO we should return integer here instead of string
 	if message[0] != ':' {
 		panic("Invalid integer")
@@ -166,21 +161,21 @@ func ReadInteger(message string) (string, int) {
 	return intStr, len(intStr) + 3 // Add 2 for the \r\n and 1 for the :
 }
 
-func ReadRESP(message string) (string, int) {
+func UnmarshalRESP(message string) (string, int) {
 	switch message[0] {
 	case '+':
-		return ReadSimpleString(message)
+		return UnmarshalString(message)
 	case '-':
-		return ReadSimpleError(message)
+		return UnmarshalError(message)
 	case '$':
-		return ReadBulkString(message)
+		return UnmarshalBulkString(message)
 	case '#':
-		return ReadBoolean(message)
+		return UnmarshalBoolean(message)
 	case ':':
-		return ReadInteger(message)
+		return UnmarshalInteger(message)
 	case '*':
-		// Not yet implemented
-		//return ReadArray(message)
+		// Not yet implemented, type error
+		//return UnmarshalArray(message)
 	default:
 		panic("Invalid RESP message")
 	}

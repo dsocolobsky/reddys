@@ -77,5 +77,5 @@ func (a *AOF) Read() [][]string {
 		return nil
 	}
 
-	return resp.ReadManyArrays(string(content))
+	return resp.UnmarshalManyArrays(string(content))
 }

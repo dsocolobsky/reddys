@@ -59,7 +59,7 @@ func (srv *Server) handleConn(conn net.Conn) {
 			continue
 		}
 		fmt.Println(msg)
-		arr, _ := resp.ReadArray(msg)
+		arr, _ := resp.UnmarshalArray(msg)
 		if len(arr) == 0 {
 			fmt.Println("Empty array of commands!")
 		}
